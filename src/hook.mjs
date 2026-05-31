@@ -14,12 +14,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 function readStdin() {
   return new Promise((resolve) => {
     let data = '';
-    const done = (v) => resolve(v);
-    const t = setTimeout(() => done(data), 2000); // don't hang if stdin never closes
+    setTimeout(() => resolve(data), 2000); // never hang if stdin doesn't close
     process.stdin.setEncoding('utf8');
     process.stdin.on('data', (c) => (data += c));
-    process.stdin.on('end', () => { clearTimeout(t); done(data); });
-    process.stdin.on('error', () => { clearTimeout(t); done(data); });
+    process.stdin.on('end', () => resolve(data));
+    process.stdin.on('error', () => resolve(data));
   });
 }
 

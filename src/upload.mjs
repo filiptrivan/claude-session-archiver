@@ -1,10 +1,11 @@
 // upload.mjs — upload one file to the configured S3-compatible bucket.
 // Usage: node src/upload.mjs <localFilePath> <destKey>
 import { readFile, appendFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { join, extname } from 'node:path';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
 import { getConfig, ROOT } from './config.mjs';
 
+const CONTENT_TYPES = { '.jsonl': 'application/x-ndjson', '.json': 'application/json' };
 const logErr = async (msg) => { try { await appendFile(join(ROOT, 'archiver.log'), msg + '\n'); } catch {} };
 
 const [, , localPath, destKey] = process.argv;
@@ -20,7 +21,7 @@ try {
     Bucket: bucket,
     Key: destKey,
     Body: body,
-    ContentType: 'application/x-ndjson',
+    ContentType: CONTENT_TYPES[extname(destKey).toLowerCase()] ?? 'application/octet-stream',
   }));
   console.log(`uploaded ${destKey} (${body.length} bytes) -> ${bucket}`);
 } catch (err) {
